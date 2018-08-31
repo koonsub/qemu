@@ -1821,6 +1821,8 @@ static int qcow2_create(const char *filename, QemuOpts *opts, Error **errp)
         version = 2;
     } else if (!strcmp(buf, "1.1")) {
         version = 3;
+    } else if (!strcmp(buf, "1.2")) {
+        version = 4;
     } else {
         error_setg(errp, "Invalid compatibility level: '%s'", buf);
         ret = -EINVAL;
@@ -1912,6 +1914,24 @@ static int qcow2_truncate(BlockDriverState *bs, int64_t offset)
     if (offset < bs->total_sectors * 512) {
         error_report("qcow2 doesn't support shrinking images yet");
         return -ENOTSUP;
+    }
+
+    if (s-> qcow_version == 4) {
+        // new f
+        uint8_t data[16];
+        uint64_t journal_offset;
+        journal_offset = qcow2_alloc_clusters(s->cluster_size * 16);
+
+        cpu_to_be32w((uint32_t*)data, 0x6803f857);
+        cpu_to_be32w((uint32_t*)(data+4), 1);
+        stq_be_p(data + 8, journal_offset);
+        
+
+        ret = bdrv_pwrite_sync(bs->file, 104,data, sizeof(data));
+        if (ret < 0) {
+            return ret;
+        }
+
     }
 
     new_l1_size = size_to_l1(s, offset);
