@@ -108,6 +108,10 @@ typedef struct QCowHeader {
 
     uint32_t refcount_order;
     uint32_t header_length;
+
+    uint32_t ext_type;
+    uint32_t ext_size;
+    uint64_t ext_journal;
 } QEMU_PACKED QCowHeader;
 
 typedef struct QEMU_PACKED QCowSnapshotHeader {

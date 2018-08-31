@@ -495,7 +495,7 @@ static int qcow2_open(BlockDriverState *bs, QDict *options, int flags,
         ret = -EINVAL;
         goto fail;
     }
-    if (header.version < 2 || header.version > 3) {
+    if (header.version < 2 || header.version > 4) {
         report_unsupported(bs, errp, "QCOW version %" PRIu32, header.version);
         ret = -ENOTSUP;
         goto fail;
@@ -1920,7 +1920,7 @@ static int qcow2_truncate(BlockDriverState *bs, int64_t offset)
         // new f
         uint8_t data[16];
         uint64_t journal_offset;
-        journal_offset = qcow2_alloc_clusters(s->cluster_size * 16);
+        journal_offset = qcow2_alloc_clusters(bs,s->cluster_size * 16);
 
         cpu_to_be32w((uint32_t*)data, 0x6803f857);
         cpu_to_be32w((uint32_t*)(data+4), 1);
