@@ -211,6 +211,7 @@ typedef struct Qcow2DiscardRegion {
 #if 1
 // // test journal structure
 // #define LOGSIZE 10;  
+/*
 struct JournalHeader {
     uint32_t magic;
     uint32_t endian;
@@ -236,6 +237,7 @@ struct buf {
     uint8_t data[512];
 }
 struct log log;
+*/
 #endif
 
 typedef struct BDRVQcowState {
@@ -260,8 +262,8 @@ typedef struct BDRVQcowState {
     uint64_t cluster_cache_offset;
     QLIST_HEAD(QCowClusterAlloc, QCowL2Meta) cluster_allocs;
 #if 1
-    uint32_t* journal;
-    uint32_t journal_offset;
+    uint64_t* journal;
+    uint64_t journal_offset;
 #endif
     uint64_t *refcount_table;
     uint64_t refcount_table_offset;

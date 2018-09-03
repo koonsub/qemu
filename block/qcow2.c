@@ -489,6 +489,11 @@ static int qcow2_open(BlockDriverState *bs, QDict *options, int flags,
     be32_to_cpus(&header.refcount_table_clusters);
     be64_to_cpus(&header.snapshots_offset);
     be32_to_cpus(&header.nb_snapshots);
+    if(header.version == 4) {
+      be32_to_cpus(&header.ext_type);
+      be32_to_cpus(&header.ext_size);
+      be64_to_cpus(&header.ext_journal);
+    }
 
     if (header.magic != QCOW_MAGIC) {
         error_setg(errp, "Image is not in qcow2 format");
