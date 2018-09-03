@@ -625,6 +625,12 @@ static int qcow2_open(BlockDriverState *bs, QDict *options, int flags,
     s->refcount_table_offset = header.refcount_table_offset;
     s->refcount_table_size =
         header.refcount_table_clusters << (s->cluster_bits - 3);
+#if 1
+    if (s->qcow_version == 4) {
+        s->journal = g_malloc0(1024*1024);
+        s->journal_offset = header.ext_journal;
+    }
+#endif
 
     if (header.refcount_table_clusters > qcow2_max_refcount_clusters(s)) {
         error_setg(errp, "Reference count table too large");
@@ -2472,4 +2478,10 @@ static void bdrv_qcow2_init(void)
     bdrv_register(&bdrv_qcow2);
 }
 
+// static void log_write(struct buf *bp)
+// {
+    
+// }
+
 block_init(bdrv_qcow2_init);
+

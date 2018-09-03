@@ -208,6 +208,35 @@ typedef struct Qcow2DiscardRegion {
     uint64_t bytes;
     QTAILQ_ENTRY(Qcow2DiscardRegion) next;
 } Qcow2DiscardRegion;
+#if 1
+// // test journal structure
+// #define LOGSIZE 10;  
+struct JournalHeader {
+    uint32_t magic;
+    uint32_t endian;
+    uint64_t start;
+    uint64_t end;
+    uint64_t size;
+    uint32_t blhdr_size;
+    uint32_t checksum;
+    uint32_t jhdr_size;
+}
+
+struct log {
+//   struct spinlock lock;
+  int start;
+  int size;
+  int outstanding; // how many FS sys calls are executing.
+  int committing;  // in commit(), please wait.
+  struct logheader lh;
+};
+
+struct buf {
+    int flags;
+    uint8_t data[512];
+}
+struct log log;
+#endif
 
 typedef struct BDRVQcowState {
     int cluster_bits;
@@ -230,7 +259,10 @@ typedef struct BDRVQcowState {
     uint8_t *cluster_data;
     uint64_t cluster_cache_offset;
     QLIST_HEAD(QCowClusterAlloc, QCowL2Meta) cluster_allocs;
-
+#if 1
+    uint32_t* journal;
+    uint32_t journal_offset;
+#endif
     uint64_t *refcount_table;
     uint64_t refcount_table_offset;
     uint32_t refcount_table_size;
