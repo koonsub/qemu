@@ -258,7 +258,8 @@ typedef struct BDRVQcowState {
     QLIST_HEAD(QCowClusterAlloc, QCowL2Meta) cluster_allocs;
 #if 1
 // struct journal journal;
-    JournalTransaction journal;
+    JournalHeader journal_header;
+    JournalTransaction journal_transaction;
     uint64_t journal_offset;
 #endif
     uint64_t *refcount_table;
