@@ -1940,8 +1940,25 @@ static int qcow2_truncate(BlockDriverState *bs, int64_t offset)
 
         ret = bdrv_pwrite_sync(bs->file, 104,data, sizeof(data));
         if (ret < 0) {
-            return ret;
+           return ret;
         }
+
+        JournalSuperBlock* jsb = g_malloc0(s->cluster_size);
+       *jsb = (JournalSuperBlock) {
+            .magic               =  cpu_to_be32(QCOW_MAGIC);
+            .endian              = cpu_to_be32(version);
+            .start_tx  = cpu_to_be32(sizeof(JournalSuperBlock));
+            .end_tx    = cpu_to_be32(sizeof(JournalSuperBlock));
+            .journal_size     = cpu_to_be32(0);
+            .checksum= cpu_to_be32(0);
+            .jsb_size = = cpu_to_be32(sizeof(JournalSuperBlock));
+            };
+
+        ret = bdrv_pwrite(bs, 3*s->cluster_size, jsb, sizeof(JournalSuperBlock));
+
+        if (ret < 0) {
+           return ret;
+        }        
 
     }
 
