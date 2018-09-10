@@ -210,7 +210,7 @@ typedef struct Qcow2DiscardRegion {
 } Qcow2DiscardRegion;
 #if 1
 // // test journal structure
- #define TRANSACTIONSIZE 10;  
+ #define TRANSACTIONSIZE 10
 
 typedef struct JournalSuperBlock {
     uint32_t magic;
@@ -269,8 +269,9 @@ typedef struct BDRVQcowState {
 // struct journal journal;
     JournalHeader journal_header;
     JournalTransaction journal_transaction;
-    uint64_t journal_offset;
+    
 #endif
+    uint64_t journal_offset;
     uint64_t *refcount_table;
     uint64_t refcount_table_offset;
     uint32_t refcount_table_size;

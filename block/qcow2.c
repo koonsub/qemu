@@ -632,7 +632,7 @@ static int qcow2_open(BlockDriverState *bs, QDict *options, int flags,
         header.refcount_table_clusters << (s->cluster_bits - 3);
 #if 1
     if (s->qcow_version == 4) {
-        s->journal = g_malloc0(1024*1024);
+        // s->journal = g_malloc0(1024*1024);
         s->journal_offset = header.ext_journal;
     }
 #endif
@@ -1954,7 +1954,7 @@ static int qcow2_truncate(BlockDriverState *bs, int64_t offset)
             .jsb_size = = cpu_to_be32(sizeof(JournalSuperBlock));
             };
 
-        ret = bdrv_pwrite(bs, 3*s->cluster_size, jsb, sizeof(JournalSuperBlock));
+        ret = bdrv_pwrite(bs, s->journal_offset, jsb, sizeof(JournalSuperBlock));
 
         if (ret < 0) {
            return ret;
