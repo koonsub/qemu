@@ -632,8 +632,21 @@ static int qcow2_open(BlockDriverState *bs, QDict *options, int flags,
         header.refcount_table_clusters << (s->cluster_bits - 3);
 #if 1
     if (s->qcow_version == 4) {
-        // s->journal = g_malloc0(1024*1024);
-        s->journal_offset = header.ext_journal;
+        s->journal = g_malloc0(sizeof(Journal));
+        s->journal->journal_offset = header.ext_journal;
+ 
+        ret = bdrv_pread(bs->file, s->journal->journal_offset, &s->journal->jsb, sizeof(JournalSuperBlock));
+        if (ret < 0) {
+          error_setg_errno(errp, -ret, "Could not read qcow2 journal super block");
+          goto fail;
+        }
+        be32_to_cpus(&s->journal->jsb.magic);
+        be32_to_cpus(&s->journal->jsb.endian);
+        be64_to_cpus(&s->journal->jsb.start_tx);
+        be64_to_cpus(&s->journal->jsb.end_tx);
+        be64_to_cpus(&s->journal->jsb.journal_size);
+        be32_to_cpus(&s->journal->jsb.checksum);
+        be32_to_cpus(&s->journal->jsb.jsb_size);
     }
 #endif
 
@@ -1944,17 +1957,18 @@ static int qcow2_truncate(BlockDriverState *bs, int64_t offset)
         }
 
         JournalSuperBlock* jsb = g_malloc0(s->cluster_size);
-       *jsb = (JournalSuperBlock) {
-            .magic               =  cpu_to_be32(QCOW_MAGIC);
-            .endian              = cpu_to_be32(version);
-            .start_tx  = cpu_to_be32(sizeof(JournalSuperBlock));
-            .end_tx    = cpu_to_be32(sizeof(JournalSuperBlock));
-            .journal_size     = cpu_to_be32(0);
-            .checksum= cpu_to_be32(0);
-            .jsb_size = = cpu_to_be32(sizeof(JournalSuperBlock));
-            };
+        *jsb = (JournalSuperBlock) {
+            .magic               =  cpu_to_be32(QCOW_MAGIC),
+            .endian              = cpu_to_be32(s->qcow_version),
+            .start_tx            = cpu_to_be32(sizeof(JournalSuperBlock)),
+            .end_tx              = cpu_to_be32(sizeof(JournalSuperBlock)),
+            .journal_size        = cpu_to_be32(0),
+            .checksum            = cpu_to_be32(0),
+            .jsb_size            = cpu_to_be32(sizeof(JournalSuperBlock)),
+        };
 
-        ret = bdrv_pwrite(bs, s->journal_offset, jsb, sizeof(JournalSuperBlock));
+        ret = bdrv_pwrite_sync(bs->file, journal_offset, jsb, s->cluster_size);
+        g_free(jsb);
 
         if (ret < 0) {
            return ret;

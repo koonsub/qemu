@@ -208,6 +208,7 @@ typedef struct Qcow2DiscardRegion {
     uint64_t bytes;
     QTAILQ_ENTRY(Qcow2DiscardRegion) next;
 } Qcow2DiscardRegion;
+
 #if 1
 // // test journal structure
  #define TRANSACTIONSIZE 10
@@ -236,10 +237,11 @@ typedef struct JournalTransaction {
 
 typedef struct Journal {
 // lock
+  uint64_t journal_offset;
   int start;
   int size;
   int committing;
-  Qcow2CachedTable* block[TRANSACTIONSIZE];
+  uint64_t* block[TRANSACTIONSIZE];
   JournalSuperBlock jsb; 
 } Journal;
 #endif
@@ -271,7 +273,7 @@ typedef struct BDRVQcowState {
     JournalTransaction journal_transaction;
     
 #endif
-    uint64_t journal_offset;
+    Journal* journal;
     uint64_t *refcount_table;
     uint64_t refcount_table_offset;
     uint32_t refcount_table_size;
