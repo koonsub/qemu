@@ -230,7 +230,7 @@ typedef struct JournalTransaction {
   uint32_t checksum;
   uint8_t begin; 
   uint8_t commit;  
-  uint32_t tx_size;
+  uint16_t tx_size;
   uint64_t block[TRANSACTIONSIZE];
 } JournalTransaction;
 
@@ -238,10 +238,11 @@ typedef struct JournalTransaction {
 typedef struct Journal {
 // lock
   uint64_t journal_offset;
-  int start;
-  int size;
-  int committing;
-  uint64_t* block[TRANSACTIONSIZE];
+  uint32_t checksum;
+  uint8_t begin;
+  uint8_t commit;
+  uint16_t tx_size;
+  void* block[TRANSACTIONSIZE];
   JournalSuperBlock jsb; 
 } Journal;
 #endif

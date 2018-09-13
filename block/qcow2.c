@@ -647,6 +647,10 @@ static int qcow2_open(BlockDriverState *bs, QDict *options, int flags,
         be64_to_cpus(&s->journal->jsb.journal_size);
         be32_to_cpus(&s->journal->jsb.checksum);
         be32_to_cpus(&s->journal->jsb.jsb_size);
+
+        if ( s->journal->jsb.journal_size ) {
+            // recover ..
+        } 
     }
 #endif
 
@@ -2515,6 +2519,34 @@ static void bdrv_qcow2_init(void)
 }
 
 // static void log_write(struct buf *bp)
+void qcow2_journal_write(BlockDriverState *bs, Qcow2Cache *c, int i )
+{
+    BDRVQcowState *s = bs->opaque;
+    int ret = 0;
+    void* table = &c->entries[i];
+
+    if (!c->entries[i].dirty || !c->entries[i].offset) {
+        return 0;
+    }
+
+    for (i = 0; i < s->journal->tx_size; i++) {
+        if (s->journal->block[i] == table)   // log absorbtion
+            break;
+    }
+    s->journal->block[i] = table;
+
+    if(i == s->journal->tx_size) {
+        s->journal->tx_size++;
+    } 
+
+    ((Qcow2CacheTable *)table)->dirty = true;
+
+    // c->entries[i].dirty = true;
+
+    // s->journal->block[s->journal_transaction.size++] = c->entries[i];
+    // s->end_tx = ..
+
+}
 // {
     
 // }
