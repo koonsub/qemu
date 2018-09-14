@@ -606,4 +606,9 @@ int qcow2_cache_get_empty(BlockDriverState *bs, Qcow2Cache *c, uint64_t offset,
     void **table);
 int qcow2_cache_put(BlockDriverState *bs, Qcow2Cache *c, void **table);
 
+/* qcow2-journal.c functions */
+
+void qcow2_journal_write(BlockDriverState *bs, void *table );
+
+
 #endif

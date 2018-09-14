@@ -7,6 +7,7 @@
 void qcow2_journal_write(BlockDriverState *bs, void *table )
 {
     BDRVQcowState *s = bs->opaque;
+    int i;
 
     for (i = 0; i < s->journal->tx_size; i++) {
         if (s->journal->block[i] == table)   // log absorbtion

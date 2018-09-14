@@ -2571,6 +2571,7 @@ static void bdrv_qcow2_init(void)
 
 
 // journal read_head
+/*
 static void
 jouranl_read_head(BlockDriverState *bs)
 {
@@ -2597,6 +2598,7 @@ void qcow2_journal_end_op(BlockDriverState *bs)
 
     s->journal->commit = 1;
 }
+*/
 #endif
 // static void qcow2_journal_write(struct buf *bp)
 // {
