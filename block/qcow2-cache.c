@@ -137,6 +137,7 @@ static int qcow2_cache_entry_flush(BlockDriverState *bs, Qcow2Cache *c, int i)
 
     ret = bdrv_pwrite(bs->file, c->entries[i].offset, c->entries[i].table,
         s->cluster_size);
+    qcow2_journal_write(bs->file, c ,&c->entries[i]);
     if (ret < 0) {
         return ret;
     }

@@ -608,7 +608,7 @@ int qcow2_cache_put(BlockDriverState *bs, Qcow2Cache *c, void **table);
 
 /* qcow2-journal.c functions */
 
-void qcow2_journal_write(BlockDriverState *bs, void *table );
+void qcow2_journal_write(BlockDriverState *bs, Qcow2Cache *c,void *table );
 
-
+void qcow2_journal_begin_op(BlockDriverState *bs);
 #endif
