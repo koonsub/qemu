@@ -2100,6 +2100,7 @@ static coroutine_fn int qcow2_co_flush_to_os(BlockDriverState *bs)
     int ret;
 
     qemu_co_mutex_lock(&s->lock);
+// begin op
     ret = qcow2_cache_flush(bs, s->l2_table_cache);
     if (ret < 0) {
         qemu_co_mutex_unlock(&s->lock);
@@ -2113,6 +2114,8 @@ static coroutine_fn int qcow2_co_flush_to_os(BlockDriverState *bs)
             return ret;
         }
     }
+    //if(s-> journal -> commit  == 'e')
+    // { end op..}
     qemu_co_mutex_unlock(&s->lock);
 
     return 0;
@@ -2518,35 +2521,84 @@ static void bdrv_qcow2_init(void)
     bdrv_register(&bdrv_qcow2);
 }
 
-// static void log_write(struct buf *bp)
-void qcow2_journal_write(BlockDriverState *bs, Qcow2Cache *c, int i )
+#if 1
+/*  static void
+    write_head(void)*/
+
+
+// Write in-memory log header to disk.
+// This is the true point at which the
+// current transaction commits.
+// static void
+// qcow2_journal_flush(BlockDriverState *bs)
+// {
+//     BDRVQcowState *s = bs->opaque;
+//      int ret;
+
+//     // s->journal_header
+//     // 
+//     // bdrv_pwritev(bs....);
+    
+    
+//     ret = bdrv_pwrite(bs->file, s->journal_header.end_tx,
+//                      s->journal_transaction, sizeof(JournalTransaction));
+//     for(int i = 0; i < s->journal_transaction.size ; i++) {
+//         ret = bdrv_pwrite(bs->file, s->journal_header.end_tx + sizeof(JournalTransaction)+ i* sizeof(Qcow2CacheTable),
+//                      s->journal_transaction->block[i], sizeof(Qcow2CacheTable));
+//     }
+//     s->journal_header.end_tx =  s->journal_header.end_tx + sizeof(JournalTransaction)+ s->jounal_transaction.size* sizeof(Qcow2CacheTable)
+//     ret = bdrv_pwrite(bs->file, s->journal_offset,
+//                      s->journal_header, sizeof(JournalHeader));
+    
+    
+    
+//     // s->journal_transaction
+// }
+
+// static void qcow2_journal_commit()
+// {
+//   if (log.lh.n > 0) { // journal 이 0보다 크면
+    
+//     qcow2_write_journal();     // Write modified blocks from cache to log
+//     write_head();    // Write header to disk -- the real commit
+//     install_trans(); // Now install writes to home locations
+//     log.lh.n = 0;
+//     write_head();    // Erase the transaction from the log
+//   }
+// }
+// void
+// log_write(struct buf *b)
+
+
+// journal read_head
+static void
+jouranl_read_head(BlockDriverState *bs)
 {
     BDRVQcowState *s = bs->opaque;
-    int ret = 0;
-    void* table = &c->entries[i];
-
-    if (!c->entries[i].dirty || !c->entries[i].offset) {
-        return 0;
-    }
-
-    for (i = 0; i < s->journal->tx_size; i++) {
-        if (s->journal->block[i] == table)   // log absorbtion
-            break;
-    }
-    s->journal->block[i] = table;
-
-    if(i == s->journal->tx_size) {
-        s->journal->tx_size++;
-    } 
-
-    ((Qcow2CacheTable *)table)->dirty = true;
-
-    // c->entries[i].dirty = true;
-
-    // s->journal->block[s->journal_transaction.size++] = c->entries[i];
-    // s->end_tx = ..
+    // int ret = 0;
 
 }
+
+
+
+
+void qcow2_journal_begin_op(BlockDriverState *bs)
+{
+    BDRVQcowState *s = bs->opaque;
+    // int ret = 0;
+
+    s->journal->begin = 1;
+}
+
+void qcow2_journal_end_op(BlockDriverState *bs)
+{
+    BDRVQcowState *s = bs->opaque;
+    // int ret = 0;
+
+    s->journal->commit = 1;
+}
+#endif
+// static void qcow2_journal_write(struct buf *bp)
 // {
     
 // }
