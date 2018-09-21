@@ -31,6 +31,7 @@
 //#define DEBUG_ALLOC
 //#define DEBUG_ALLOC2
 //#define DEBUG_EXT
+#define JOURNAL
 
 #define QCOW_MAGIC (('Q' << 24) | ('F' << 16) | ('I' << 8) | 0xfb)
 
@@ -209,40 +210,50 @@ typedef struct Qcow2DiscardRegion {
     QTAILQ_ENTRY(Qcow2DiscardRegion) next;
 } Qcow2DiscardRegion;
 
-#if 1
+#ifdef JOURNAL
 // // test journal structure
- #define TRANSACTIONSIZE 10
+ #define TRANSACTIONBLOCKSIZE 5
 
 typedef struct JournalSuperBlock {
     uint32_t magic;
-    uint32_t endian;
-    uint64_t start_tx;
-    uint64_t end_tx;
-    uint64_t journal_size;
+    uint32_t start_tx_id;
+    uint32_t tx_count;
+    uint32_t journal_size;                                                                                                                                            
     uint32_t checksum;
     uint32_t jsb_size;
 } JournalSuperBlock;
 
-typedef struct JournalTransaction {
-//   struct spinlock lock;
-  uint32_t start_block;
-  uint32_t end_block;
-  uint32_t checksum;
-  uint8_t begin; 
-  uint8_t commit;  
-  uint16_t tx_size;
-  uint64_t block[TRANSACTIONSIZE];
-} JournalTransaction;
+// typedef struct JournalTransaction {
+//   uint32_t start_block;
+//   uint32_t end_block;
+//   uint32_t checksum;
+//   uint8_t begin; 
+//   uint8_t commit;  
+//   uint16_t tx_size;
+//   uint64_t block[TRANSACTIONBLOCKSIZE];
+// } JournalTransaction;
 
+typedef struct JournalTransactionHeader {
+ uint32_t tx_id;
+ uint32_t tx_block_count;
+ uint64_t tx_journal_offset; 
+ int64_t  tx_disk_offset[TRANSACTIONBLOCKSIZE];
+} JournalTransactionHeader;
+
+
+
+typedef struct JournalTransactionBlock {
+ void* data;; 
+ int64_t  tx_disk_offset;
+} JournalTransactionBlock;
 
 typedef struct Journal {
 // lock
   uint64_t journal_offset;
   uint32_t checksum;
-  uint8_t begin;
-  uint8_t commit;
-  uint16_t tx_size;
-  void* block[TRANSACTIONSIZE];
+  uint32_t tx_id;
+  uint32_t tx_block_count;
+  JournalTransactionBlock block[TRANSACTIONBLOCKSIZE];
   JournalSuperBlock jsb; 
 } Journal;
 #endif
