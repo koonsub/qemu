@@ -86,6 +86,10 @@ qcow2_journal_commit(BlockDriverState *bs)
            return;
         }
     }
+     /* No flush needed for cache modes that already do it */
+    if (bs->enable_write_cache) {
+        bdrv_flush(bs);
+    }
 
     uint32_t new_head_id =( j ->jsb.start_tx_id + j->jsb.tx_count++)  % 3;
     JournalTransactionHeader jth;
@@ -110,44 +114,48 @@ qcow2_journal_commit(BlockDriverState *bs)
            return;
     }
 
-    
-
-}
-
-
-
-// Copy modified blocks from cache to journal.
-static void
-qcow2_journal_flush_to_disk(BlockDriverState *bs)
-{
-    BDRVQcowState *s = bs->opaque;
-    Journal j = s->journal;
-    int i;
-
-    if( j->tx_size > TRANSACTIONBLOCKSIZE){
-      return;
+     /* No flush needed for cache modes that already do it */
+    if (bs->enable_write_cache) {
+        bdrv_flush(bs);
     }
 
-    for (i = 0; i < j->tx_size; i++) {
+    
+}
 
-        // 캐시의 테이블을 가져온다.
 
-        // 캐시의 각 테이블을 저널 영역에 쓴다.
-        // TODO: bdrv_pwrite는 bs의 file에 직접 쓰는 것이기 때문에, bs의 file이 아닌, 저널에 쓰게
-        // bdrv_pwrite의 함수를 좀 바꾸거나, 새로 함수를 만들어서, 저널영역에 쓰게 해야함.
-        bdrv_pwrite(bs,  , s->journal->block[i].data, s->cluster_size);
+
+// // Copy modified blocks from cache to journal.
+// static void
+// qcow2_journal_flush_to_disk(BlockDriverState *bs)
+// {
+//     BDRVQcowState *s = bs->opaque;
+//     Journal j = s->journal;
+//     int i;
+
+//     if( j->tx_size > TRANSACTIONBLOCKSIZE){
+//       return;
+//     }
+
+//     for (i = 0; i < j->tx_size; i++) {
+
+//         // 캐시의 테이블을 가져온다.
+
+//         // 캐시의 각 테이블을 저널 영역에 쓴다.
+//         // TODO: bdrv_pwrite는 bs의 file에 직접 쓰는 것이기 때문에, bs의 file이 아닌, 저널에 쓰게
+//         // bdrv_pwrite의 함수를 좀 바꾸거나, 새로 함수를 만들어서, 저널영역에 쓰게 해야함.
+//         bdrv_pwrite(bs,  , s->journal->block[i].data, s->cluster_size);
 
         
-    //     // 쓸 block들에 대하여 읽어온다.
-    //     struct buf *to = bread(log.dev, log.start+tail+1); // log block
+//     //     // 쓸 block들에 대하여 읽어온다.
+//     //     struct buf *to = bread(log.dev, log.start+tail+1); // log block
 
-    //     // 캐시 block들을 읽어온다.
-    //     struct buf *from = bread(log.dev, log.lh.block[tail]); // cache block
+//     //     // 캐시 block들을 읽어온다.
+//     //     struct buf *from = bread(log.dev, log.lh.block[tail]); // cache block
 
-    //     // 쓸 block들에 대하여, 캐시 block의 데이터들을 저널 영역에 넣어준다.
-    //     memmove(to->data, from->data, BSIZE);
-    //     bwrite(to);  // write the log
-    //     brelse(from);
-    //     brelse(to);
-    // }
-}
+//     //     // 쓸 block들에 대하여, 캐시 block의 데이터들을 저널 영역에 넣어준다.
+//     //     memmove(to->data, from->data, BSIZE);
+//     //     bwrite(to);  // write the log
+//     //     brelse(from);
+//     //     brelse(to);
+//     // }
+// }
